@@ -11,7 +11,7 @@ import pyocr
 import pyocr.builders
 
 # Configurando o caminho para o executável do Tesseract-OCR
-pytesseract.pytesseract.tesseract_cmd = r'Seu_path_aqui'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # Lista de palavras-chave para identificar o nome do medicamento
 palavras_chave = [
@@ -67,6 +67,48 @@ ultima_imagem_id = None
 nome_medicamento = None
 unidade = None
 medida = None
+
+# Função para exibir a janela de loading
+def mostrar_loading():
+    posicao_x = 800  
+    posicao_y = 300  
+    
+    loading_layout = [
+        [sg.Text("Estou analisando a imagem fornecida\n\nEsse processo pode demorar um pouco...", justification='center')]
+    ]
+    loading_window = sg.Window("Loading", loading_layout, finalize=True, size=(300, 100), location=(posicao_x, posicao_y), keep_on_top=True)
+    return loading_window
+
+# Função apra criar a janela de escolha
+def criar_janela_escolha(nomes_medicamentos):
+    escolha_layout = [
+        [sg.Text("Escolha o medicamento:")],
+        [sg.Listbox(values=nomes_medicamentos, size=(30, len(nomes_medicamentos)), key="-MEDICAMENTO-")],
+        [sg.Button("OK")]
+    ]
+    escolha_window = sg.Window(
+        "Escolha o Medicamento", escolha_layout, finalize=False)
+    return escolha_window
+
+# Função para criar a janela principal
+def criar_janela_principal():
+    layout_principal = [
+        [sg.Button("Image Upload", key='-UPLOAD-'), sg.Button("Visualizar Imagem", key='-VISUALIZAR-', disabled=True), sg.Button("Extrair Texto", key='-EXTRAIR-', disabled=True)]
+    ]
+    window_principal = sg.Window("Principal", layout_principal, finalize=True)
+    return window_principal
+
+# Função para criar a janela adicionar
+def criar_janela_adicionar():
+    layout_adicionar = [
+        [sg.Text('Nome do Produto:'), sg.InputText(key='-NOME-', size=(30, 1))],
+        [sg.Text('Quantidade:'), sg.InputText(key='-QUANTIDADE-', size=(30, 1))],
+        [sg.Text('Medida:'), sg.InputText(key='-MEDIDA-', size=(30, 1))],
+        [sg.Button('Adicionar')]
+    ]
+    window_adicionar = sg.Window(
+        "Adicionar Produto", layout_adicionar, finalize=True)
+    return window_adicionar
 
 # Função para criar as tabelas no banco de dados se não existirem
 def criar_tabelas(conn):
@@ -128,17 +170,6 @@ def ocr_with_easyocr(image):
     results = reader.readtext(image)
     extracted_text = [result[1] for result in results]
     return " ".join(extracted_text)
-
-# Função apra criar a janela de escolha
-def criar_janela_escolha(nomes_medicamentos):
-    escolha_layout = [
-        [sg.Text("Escolha o medicamento:")],
-        [sg.Listbox(values=nomes_medicamentos, size=(
-            30, len(nomes_medicamentos)), key="-MEDICAMENTO-")],
-        [sg.Button("OK")]
-    ]
-    escolha_window = sg.Window("Escolha o Medicamento", escolha_layout)
-    return escolha_window
 
 # Função para extrair o nome da imagem
 def extrair_nome_imagem(window_adicionar, conn, escolha_window, tentativa=1):
@@ -227,7 +258,8 @@ def extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window, tent
             # Faça a mesma função rodar novamente para pegar os dados corretos, mas agora com a segunda tentativa
             return extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window, tentativa=2)
         else:
-            window_adicionar['-QUANTIDADE-'].update(quantidade if quantidade else "")
+            window_adicionar['-QUANTIDADE-'].update(
+                quantidade if quantidade else "")
             window_adicionar['-MEDIDA-'].update(medida if medida else "")
             # popup_info(window_adicionar, nome_medicamento, quantidade, medida)
     else:
@@ -266,25 +298,18 @@ def encontrar_quantidade_e_medida(texto):
     else:
         return "Quantidade não encontrada.", "Medida não encontrada."
 
-# Layout da primeira janela
-layout_principal = [
-    [sg.Button("Image Upload", key='-UPLOAD-'), sg.Button("Visualizar Imagem", key='-VISUALIZAR-', disabled=True),
-     sg.Button("Extrair Texto", key='-EXTRAIR-', disabled=True), sg.Button("Close Window", key="close_window")]
-]
-
 # Criando a conexão com o banco de dados
 conn = sqlite3.connect('implementando_ia.db')
 criar_tabelas(conn)
 
-# Criando a primeira janela
-window_principal = sg.Window("Principal", layout_principal)
-
 # Loop principal
+window_principal = criar_janela_principal()
+
 while True:
+
     event, values = window_principal.read()
 
-    # Evento para fechar a janela principal/encerrar o programa
-    if event == sg.WIN_CLOSED or event == "close_window":
+    if event == sg.WIN_CLOSED:
         break
 
     # Evento de fazer upload da imagem
@@ -306,27 +331,25 @@ while True:
             window_imagem.close()
 
     # Evento principal para extrair informações da imagem
-    if event == '-EXTRAIR-':
+    elif event == '-EXTRAIR-':
+        window_principal.hide()
+        loading_window = mostrar_loading()
+
         if ultima_imagem_id:
-            # Abrir a segunda janela de adicionar produto com as informações extraídas
-            layout_adicionar = [
-                [sg.Text('Nome do Produto:'), sg.InputText(
-                    key='-NOME-', size=(30, 1))],
-                [sg.Text('Quantidade:'), sg.InputText(
-                    key='-QUANTIDADE-', size=(30, 1))],
-                [sg.Text('Medida:'), sg.InputText(
-                    key='-MEDIDA-', size=(30, 1))],
-                [sg.Button('Adicionar')]
-            ]
-            window_adicionar = sg.Window(
-                "Adicionar Produto", layout_adicionar, finalize=True)
 
             escolha_window = criar_janela_escolha([])
+            
+            # Abrir a segunda janela de adicionar produto com as informações extraídas
+            window_adicionar = criar_janela_adicionar()
+
             extrair_nome_imagem(window_adicionar, conn, escolha_window)
             extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window)
 
+            loading_window.close()
+
             # Loop da segunda janela de adicionar produto
             while True:
+
                 event_adicionar, values_adicionar = window_adicionar.read()
 
                 if event_adicionar == sg.WIN_CLOSED:
@@ -335,8 +358,7 @@ while True:
                 # Evento para adicionar produto ao banco de dados
                 elif event_adicionar == 'Adicionar':
                     if values_adicionar['-NOME-'] and values_adicionar['-QUANTIDADE-'] and values_adicionar['-MEDIDA-']:
-                        inserir_produto(
-                            conn, values_adicionar['-NOME-'], values_adicionar['-QUANTIDADE-'], values_adicionar['-MEDIDA-'], ultima_imagem_id)
+                        inserir_produto(conn, values_adicionar['-NOME-'], values_adicionar['-QUANTIDADE-'], values_adicionar['-MEDIDA-'], ultima_imagem_id)
                         sg.popup("Produto adicionado com sucesso!")
 
                         # Exibir as informações extraídas na janela de adição
@@ -344,11 +366,12 @@ while True:
                         window_adicionar['-QUANTIDADE-'].update(informacoes_extraidas['quantidade'])
                         window_adicionar['-MEDIDA-'].update(informacoes_extraidas['medida'])
 
+                        window_principal.un_hide()
+                        window_adicionar.close()
+
                         break
                     else:
-                        sg.popup_error(
-                            "Por favor, preencha todas as informações do medicamento.")
-
+                        sg.popup_error("Por favor, preencha todas as informações do medicamento.")
 
 # Fechando as janelas ao sair dos loops
 window_principal.close()

@@ -1,4 +1,4 @@
-[Readme in english]()
+[Readme in english](https://github.com/lucasgleria/Python-deep-learning-image-medicine-recognizer/edit/main/readme.md#deep-learning-project---portfolio)
 
 # Projeto de Deep Learning - Portfólio
 

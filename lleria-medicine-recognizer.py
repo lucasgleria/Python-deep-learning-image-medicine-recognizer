@@ -10,9 +10,6 @@ from easyocr import Reader
 import pyocr
 import pyocr.builders
 
-# Configurando o caminho para o executável do Tesseract-OCR
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
 # Lista de palavras-chave para identificar o nome do medicamento
 palavras_chave = [
     'abacavir', 'abiraterona', 'acetaminofeno', 'acetato de tocoferol', 'acetato de zinco', 'aciclovir', 'ácido ascórbico', 'ácido azelaico', 'ácido fólico', 'ácido fusídico', 'ácido glicólico',
@@ -69,21 +66,28 @@ unidade = None
 medida = None
 
 # Função para exibir a janela de loading
+
+
 def mostrar_loading():
-    posicao_x = 800  
-    posicao_y = 300  
-    
+    posicao_x = 800
+    posicao_y = 300
+
     loading_layout = [
-        [sg.Text("Estou analisando a imagem fornecida\n\nEsse processo pode demorar um pouco...", justification='center')]
+        [sg.Text("Estou analisando a imagem fornecida\n\nEsse processo pode demorar um pouco...",
+                 justification='center')]
     ]
-    loading_window = sg.Window("Loading", loading_layout, finalize=True, size=(300, 100), location=(posicao_x, posicao_y), keep_on_top=True)
+    loading_window = sg.Window("Loading", loading_layout, finalize=True, size=(
+        300, 100), location=(posicao_x, posicao_y), keep_on_top=True)
     return loading_window
 
 # Função apra criar a janela de escolha
+
+
 def criar_janela_escolha(nomes_medicamentos):
     escolha_layout = [
         [sg.Text("Escolha o medicamento:")],
-        [sg.Listbox(values=nomes_medicamentos, size=(30, len(nomes_medicamentos)), key="-MEDICAMENTO-")],
+        [sg.Listbox(values=nomes_medicamentos, size=(
+            30, len(nomes_medicamentos)), key="-MEDICAMENTO-")],
         [sg.Button("OK")]
     ]
     escolha_window = sg.Window(
@@ -91,18 +95,25 @@ def criar_janela_escolha(nomes_medicamentos):
     return escolha_window
 
 # Função para criar a janela principal
+
+
 def criar_janela_principal():
     layout_principal = [
-        [sg.Button("Image Upload", key='-UPLOAD-'), sg.Button("Visualizar Imagem", key='-VISUALIZAR-', disabled=True), sg.Button("Extrair Texto", key='-EXTRAIR-', disabled=True)]
+        [sg.Button("Image Upload", key='-UPLOAD-'), sg.Button("Visualizar Imagem", key='-VISUALIZAR-',
+                                                              disabled=True), sg.Button("Extrair Texto", key='-EXTRAIR-', disabled=True)]
     ]
     window_principal = sg.Window("Principal", layout_principal, finalize=True)
     return window_principal
 
 # Função para criar a janela adicionar
+
+
 def criar_janela_adicionar():
     layout_adicionar = [
-        [sg.Text('Nome do Produto:'), sg.InputText(key='-NOME-', size=(30, 1))],
-        [sg.Text('Quantidade:'), sg.InputText(key='-QUANTIDADE-', size=(30, 1))],
+        [sg.Text('Nome do Produto:'), sg.InputText(
+            key='-NOME-', size=(30, 1))],
+        [sg.Text('Quantidade:'), sg.InputText(
+            key='-QUANTIDADE-', size=(30, 1))],
         [sg.Text('Medida:'), sg.InputText(key='-MEDIDA-', size=(30, 1))],
         [sg.Button('Adicionar')]
     ]
@@ -111,6 +122,8 @@ def criar_janela_adicionar():
     return window_adicionar
 
 # Função para criar as tabelas no banco de dados se não existirem
+
+
 def criar_tabelas(conn):
     cursor = conn.cursor()
     cursor.execute('''
@@ -132,6 +145,8 @@ def criar_tabelas(conn):
     conn.commit()
 
 # Função para inserir a imagem no banco de dados
+
+
 def inserir_imagem(conn, path_imagem):
     cursor = conn.cursor()
     cursor.execute('INSERT INTO imagens (path) VALUES (?)', (path_imagem,))
@@ -140,6 +155,8 @@ def inserir_imagem(conn, path_imagem):
     ultima_imagem_id = cursor.lastrowid  # Obtém o ID da última imagem inserida
 
 # Função para inserir o produto no banco de dados
+
+
 def inserir_produto(conn, nome_produto, quantidade, medida, imagem_id):
     cursor = conn.cursor()
     cursor.execute('INSERT INTO produtos (nome_produto, quantidade, medida, imagem_id) VALUES (?, ?, ?, ?)',
@@ -147,6 +164,8 @@ def inserir_produto(conn, nome_produto, quantidade, medida, imagem_id):
     conn.commit()
 
 # Função para obter o path da imagem do banco de dados
+
+
 def obter_imagem(conn, imagem_id):
     cursor = conn.cursor()
     cursor.execute('SELECT path FROM imagens WHERE id = ?', (imagem_id,))
@@ -154,6 +173,8 @@ def obter_imagem(conn, imagem_id):
     return path[0] if path else None
 
 # Função para carregar a imagem e exibi-la na janela
+
+
 def exibir_imagem(window_imagem, conn, imagem_id):
     path = obter_imagem(conn, imagem_id)
     if path:
@@ -165,6 +186,8 @@ def exibir_imagem(window_imagem, conn, imagem_id):
         window_imagem['-IMAGE-'].update(data=img_bytes)
 
 # Função para realizar OCR com easyocr
+
+
 def ocr_with_easyocr(image):
     reader = easyocr.Reader(['pt'])
     results = reader.readtext(image)
@@ -172,6 +195,8 @@ def ocr_with_easyocr(image):
     return " ".join(extracted_text)
 
 # Função para extrair o nome da imagem
+
+
 def extrair_nome_imagem(window_adicionar, conn, escolha_window, tentativa=1):
     global ultima_imagem_id
     path = obter_imagem(conn, ultima_imagem_id)
@@ -229,6 +254,8 @@ def extrair_nome_imagem(window_adicionar, conn, escolha_window, tentativa=1):
         return None
 
 # Função para extrair a unidade e medida da imagem
+
+
 def extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window, tentativa=1):
     global ultima_imagem_id
     path = obter_imagem(conn, ultima_imagem_id)
@@ -268,6 +295,8 @@ def extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window, tent
         return None
 
 # Função para reconhecer o nome do medicamento
+
+
 def encontrar_nome_medicamento(texto):
     resultados = []
 
@@ -280,6 +309,8 @@ def encontrar_nome_medicamento(texto):
     return resultados if resultados else ["Medicamento não encontrado."]
 
 # Função para reconhecer a quantidade e medida e após isso separá-las
+
+
 def encontrar_quantidade_e_medida(texto):
     # Expressão regular para encontrar a quantidade e medida
     padrao = r"(\d+\s*(" + "|".join(palavras_medida) + r")\b)"
@@ -297,6 +328,7 @@ def encontrar_quantidade_e_medida(texto):
         return quantidade, medida
     else:
         return "Quantidade não encontrada.", "Medida não encontrada."
+
 
 # Criando a conexão com o banco de dados
 conn = sqlite3.connect('implementando_ia.db')
@@ -338,12 +370,13 @@ while True:
         if ultima_imagem_id:
 
             escolha_window = criar_janela_escolha([])
-            
+
             # Abrir a segunda janela de adicionar produto com as informações extraídas
             window_adicionar = criar_janela_adicionar()
 
             extrair_nome_imagem(window_adicionar, conn, escolha_window)
-            extrair_unidade_e_medida_imagem(window_adicionar, conn, escolha_window)
+            extrair_unidade_e_medida_imagem(
+                window_adicionar, conn, escolha_window)
 
             loading_window.close()
 
@@ -358,20 +391,25 @@ while True:
                 # Evento para adicionar produto ao banco de dados
                 elif event_adicionar == 'Adicionar':
                     if values_adicionar['-NOME-'] and values_adicionar['-QUANTIDADE-'] and values_adicionar['-MEDIDA-']:
-                        inserir_produto(conn, values_adicionar['-NOME-'], values_adicionar['-QUANTIDADE-'], values_adicionar['-MEDIDA-'], ultima_imagem_id)
+                        inserir_produto(
+                            conn, values_adicionar['-NOME-'], values_adicionar['-QUANTIDADE-'], values_adicionar['-MEDIDA-'], ultima_imagem_id)
                         sg.popup("Produto adicionado com sucesso!")
 
                         # Exibir as informações extraídas na janela de adição
-                        window_adicionar['-NOME-'].update(informacoes_extraidas['nome'])
-                        window_adicionar['-QUANTIDADE-'].update(informacoes_extraidas['quantidade'])
-                        window_adicionar['-MEDIDA-'].update(informacoes_extraidas['medida'])
+                        window_adicionar['-NOME-'].update(
+                            informacoes_extraidas['nome'])
+                        window_adicionar['-QUANTIDADE-'].update(
+                            informacoes_extraidas['quantidade'])
+                        window_adicionar['-MEDIDA-'].update(
+                            informacoes_extraidas['medida'])
 
                         window_principal.un_hide()
                         window_adicionar.close()
 
                         break
                     else:
-                        sg.popup_error("Por favor, preencha todas as informações do medicamento.")
+                        sg.popup_error(
+                            "Por favor, preencha todas as informações do medicamento.")
 
 # Fechando as janelas ao sair dos loops
 window_principal.close()

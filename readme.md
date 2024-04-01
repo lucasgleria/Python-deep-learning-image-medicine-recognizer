@@ -19,13 +19,12 @@ Neste repositório está o projeto medicine recognizer, desenvolvido apenas por 
 ## | O que encontrarei nessa aplicação web?
 
 - Janela _Principal_
-  - 4 botões principais:
+  - 3 botões principais:
 
     - Botão de Upload
     - Botão de Exibição
     - Botão de Extração
-    - Botão de Encerrar Programa
-
+    
     ![img-main](images/image-1.png)
 
 - Pop-up _Upload_
@@ -136,13 +135,12 @@ This repository contains the medicine recognizer project, developed by me alone.
 
 - _Main_ window
 
-  - 4 main buttons:
+  - 3 main buttons:
 
     - Upload button
     - Display button
     - Extract button
-    - End Program button
-
+    
     ![img-main](images/image-1.png)
 
 - _Upload_ pop-up

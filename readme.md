@@ -16,7 +16,7 @@ Neste repositório está o projeto medicine recognizer, desenvolvido apenas por 
 - Tema do Projeto: Reconhecer imagens de medicamentos e extrair suas informações através de uma GUI
 - Disponiblizamos: O script completo
 
-## | O que encontrarei nessa aplicação web?
+## | O que encontrarei nesse software?
 
 - Janela _Principal_
   - 3 botões principais:
@@ -131,7 +131,7 @@ This repository contains the medicine recognizer project, developed by me alone.
 - Project topic: Recognizing medicine images and extracting their information through a GUI
 - Available: The complete script
 
-## | What will I find in this web application?
+## | What will I find in this software?
 
 - _Main_ window
 

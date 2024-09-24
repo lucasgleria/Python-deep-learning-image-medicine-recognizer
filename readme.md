@@ -57,6 +57,7 @@ Neste repositório está o projeto medicine recognizer, desenvolvido apenas por 
 
 - Pop-up _Success_
   - Pop-up de mensagem de sucesso após as operações
+    
     ![img-success](images/image-7.png)
 
 ## | Como fazer funcionar na minha máquina?
